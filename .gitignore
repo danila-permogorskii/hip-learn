@@ -18,6 +18,8 @@
 # 2. Executables and binaries
 *.exe
 *.out
+main                            # extensionless compiled binary (from main.hip)
+sample                         # extensionless compiled binary (from sample.hip)
 
 # 3. HIP/ROCm specific intermediates
 *.hipfb                        # HIP fat binary (clang-offload-bundler)
