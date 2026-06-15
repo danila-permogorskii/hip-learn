@@ -13,5 +13,6 @@ add_executable(hip_runtime_api_pageable hip_runtime_api/memory_management/pageab
 add_executable(hip_runtime_api_pinned hip_runtime_api/memory_management/pinned.hip)
 add_executable(matmul matmul/main.hip)
 add_executable(sample sample/sample.hip)
+add_executable(tile_distribution TileDistribution/main.hip)
 set_source_files_properties(
   00-toolchain-smoke/toolchain_smoke.hip PROPERTIES LANGUAGE HIP)
