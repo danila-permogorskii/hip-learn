@@ -1,0 +1,94 @@
+# =============================================================================
+# .clang-tidy — ck_tile track (HIP / low-level GPU C++)
+# =============================================================================
+#
+# SYFTE — PURPOSE
+#   A linter profile tuned for KERNEL code, not generic application C++.
+#   Generic profiles drown kernel work in false positives (magic numbers,
+#   pointer arithmetic, C arrays) because those "smells" are the NORMAL,
+#   correct idiom on a GPU. Vi behåller bugg-jägarna, vi tystar stilbruset.
+#   (We keep the bug-hunters, we silence the style noise.)
+#
+# HUR DET KÖRS — HOW IT RUNS
+#   - Inline, automatically, via clangd's embedded clang-tidy (ROCm clangd
+#     understands HIP, so __global__/__shared__/intrinsics parse correctly).
+#   - Full-repo sweep:  /opt/rocm/llvm/bin/run-clang-tidy -p build/debug
+#   - In CLion: Settings -> Editor -> Inspections -> C/C++ -> Clang-Tidy ->
+#     tick "Prefer .clang-tidy files over IDE settings", and set the binary to
+#     /opt/rocm/llvm/bin/clang-tidy so HIP is understood.
+#
+# FILOSOFI — PHILOSOPHY
+#   Start from nothing (-*), switch on whole useful FAMILIES, then switch off
+#   the individual checks that are wrong for kernels. Later entries win.
+# =============================================================================
+
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  clang-analyzer-*,
+  concurrency-*,
+  misc-*,
+  modernize-*,
+  readability-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-avoid-c-arrays,
+  -modernize-avoid-c-arrays,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -readability-identifier-length,
+  -readability-braces-around-statements,
+  -bugprone-easily-swappable-parameters,
+  -misc-no-recursion,
+  -llvm-*,
+  -llvmlibc-*,
+  -fuchsia-*,
+  -google-*,
+  -abseil-*,
+  -altera-*
+
+# -----------------------------------------------------------------------------
+# VARFÖR VARJE AVSTÄNGNING — WHY EACH DISABLE
+# -----------------------------------------------------------------------------
+#   *-magic-numbers .................. tile dims (16, 64, 256, K4) are meaningful
+#                                      constants, not smells. Off.
+#   *-pro-bounds-pointer-arithmetic .. GPU code IS pointer arithmetic. Off.
+#   *-pro-bounds-*-array-* ........... ditto for LDS/array indexing. Off.
+#   *-avoid-c-arrays ................. __shared__ float tile[256]; is a C array
+#                                      by necessity (LDS). Off.
+#   modernize-use-trailing-return-type pure style noise on every function. Off.
+#   avoid-non-const-global-variables . constexpr/__constant__ globals are normal. Off.
+#   readability-identifier-length .... i, c, r, tid are correct in kernels. Off.
+#   readability-braces-around-statements  our bounds checks are one-liners. Off.
+#   bugprone-easily-swappable-parameters  kernels take many same-type dims
+#                                      (rows, cols, sr, sc). Too noisy. Off.
+#   misc-no-recursion ................ device code can't recurse anyway. Off.
+#   llvm/fuchsia/google/abseil/altera  project-specific house styles, not ours. Off.
+#
+# KEPT ON, HIGH VALUE FOR YOUR CODE — Behålls, hög nytta
+#   bugprone-narrowing-conversions ... catches uint32_t / size_t / int mixing
+#                                      (your grid math + byte counts).
+#   bugprone-integer-division ........ catches a/b*c integer pitfalls in launch dims.
+#   clang-analyzer-* ................. path-sensitive: leaks / use-after-free across
+#                                      your manual hipMalloc / hipFree pairs.
+#   performance-* .................... value-vs-reference params, needless copies.
+#
+# EXPERT NOTE — Expertanmärkning
+#   altera-id-dependent-backward-branch is the ONE off-by-default check that is
+#   genuinely GPU-aware: it flags loop bounds that depend on the thread id, a
+#   divergence smell. Switch it on selectively from Part 5 when hunting warp
+#   divergence: add  altera-id-dependent-backward-branch  to the list above.
+# -----------------------------------------------------------------------------
+
+# Lint only YOUR translation unit's main file for now (each experiment is a
+# single .hip with no local headers). When Part 3+ adds shared headers, widen
+# this to your repo path, e.g.  HeaderFilterRegex: '.*/(0[0-9]-).*'
+HeaderFilterRegex: ''
+
+WarningsAsErrors: ''        # warnings, not hard errors, while learning
+FormatStyle: none          # formatting is clang-format's job, not the linter's
