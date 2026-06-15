@@ -1,0 +1,7 @@
+# .clangd — repo root
+CompileFlags:
+  Compiler: /opt/rocm/llvm/bin/amdclang++
+  Add: [-xhip, -std=c++20]
+  # clangd's own parser doesn't understand GPU codegen flags — strip them so it
+  # stops emitting false errors, while keeping include resolution intact:
+  Remove: [--offload-arch=*, -mcpu=*, --cuda-gpu-arch=*]
