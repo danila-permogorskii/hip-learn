@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="smoke ▸ debug (rocgdb)" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="ck_tile_course" TARGET_NAME="toolchain_smoke" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="ck_tile_course" RUN_TARGET_NAME="toolchain_smoke">
+    <envs>
+      <env name="AMD_LOG_LEVEL" value="3" />
+      <env name="HIP_VISIBLE_DEVICES" value="0" />
+    </envs>
+    <method v="2">
+      <option name="CMAKE.BUILD" enabled="true" />
+    </method>
+  </configuration>
+</component>
