@@ -89,6 +89,45 @@ __global__ void read_through_view(float *__restrict__ out,
   }
 }
 
+__global__ void copy_coalesced(float* __restrict__ out,
+                              const float* __restrict__ in,
+                              uint32_t n) {
+  uint32_t stride = gridDim.x * blockDim.x;
+  for (uint32_t i = blockIdx.x * blockDim.x + threadIdx.x; i < n; i += stride)
+                                out[i] = in[i];
+
+}
+
+__global__ void copy_strided(float* __restrict__ out,
+                              const float* __restrict__ in,
+                            uint32_t n , uint32_t side) {
+  uint32_t stride = gridDim.x * blockDim.x;
+  for(uint32_t i = blockIdx.x * blockDim.x + threadIdx.x; i < n; i += stride) {
+    uint32_t r = i / side, c = i % side;
+    uint32_t src = c * side + r;
+    out[i] = in[src];
+  }
+}
+
+template <typename Launch>
+static double measure_gbs(Launch launch, size_t bytes, int kIters) {
+  hipEvent_t s, e;
+  HIP_CHECK(hipEventCreate(&s));
+  HIP_CHECK(hipEventCreate(&e));
+  launch();
+  HIP_CHECK(hipDeviceSynchronize());
+  HIP_CHECK(hipEventRecord(s));
+  for (int it = 0; it < kIters; ++it) launch();
+  HIP_CHECK(hipEventRecord(e));
+  HIP_CHECK(hipEventSynchronize(e));
+  float ms = 0.f;
+  HIP_CHECK(hipEventElapsedTime(&ms, s, e));
+  HIP_CHECK(hipEventDestroy(s));
+  HIP_CHECK(hipEventDestroy(e));
+  double sec = (ms / 1000.0) / kIters;
+  return (2.0 * static_cast<double>(bytes)) / sec / 1e9;
+}
+
 int main() {
   std::cout << "Everything is ok" << '\n';
 
@@ -171,6 +210,28 @@ int main() {
     // TODO: the same problem as in previous block
     std::printf("Transpose by view (no data moved): %s\n",
                 ok ? "correct" : "wrong");
+    HIP_CHECK(hipFree(din));
+    HIP_CHECK(hipFree(dout));
+  }
+
+  {
+    constexpr uint32_t side = 4096, N = side * side;
+    const size_t bytes = size_t(N) * sizeof(float);
+    float *din, *dout;
+    HIP_CHECK(hipMalloc(&din, bytes));
+    HIP_CHECK(hipMalloc(&dout, bytes));
+    HIP_CHECK(hipMemset(din, 1, bytes));
+    uint32_t grid = uint32_t(4 * prop.multiProcessorCount);
+
+    double gc = measure_gbs([&]{ copy_coalesced<<<grid,kBlock>>>(dout, din, N); },
+      bytes, 50);
+    double gs = measure_gbs([&]{ copy_strided<<<grid,kBlock>>>(dout, din, N, side); },
+      bytes, 50);
+
+    std::printf("coalesced: %.1f GB/s\n", gc);
+    std::printf("strided: %.1f GB/s\n", gs);
+    std::printf("penalty: %.2fx slower for the same bytes\n", gc / gs);
+
     HIP_CHECK(hipFree(din));
     HIP_CHECK(hipFree(dout));
   }
