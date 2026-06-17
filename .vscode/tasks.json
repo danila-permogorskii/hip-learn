@@ -1,0 +1,111 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake configure (debug)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake configure (release)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "release"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake build (debug)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/debug",
+        "-j"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": [
+        "cmake configure (debug)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake build (release)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/release",
+        "-j"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "dependsOn": [
+        "cmake configure (release)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "run toolchain_smoke",
+      "type": "shell",
+      "command": "./build/debug/toolchain_smoke",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": [
+        "cmake build (debug)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "run views",
+      "type": "shell",
+      "command": "./build/debug/views",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": [
+        "cmake build (debug)"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "profile views release with rocprofv3 stats",
+      "type": "shell",
+      "command": "rocprofv3",
+      "args": [
+        "--stats",
+        "--",
+        "./build/release/views"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": [
+        "cmake build (release)"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "rocgdb: toolchain_smoke",
+      "type": "cppdbg",
+      "request": "launch",
+
+      // Executable built by the debug preset.
+      "program": "${workspaceFolder}/build/debug/toolchain_smoke",
+
+      // Run from repo root.
+      "cwd": "${workspaceFolder}",
+
+      // No command-line args by default.
+      "args": [],
+
+      // Keep environment empty unless you need ROCm-specific overrides.
+      "environment": [],
+
+      // Use VSCode integrated terminal.
+      "externalConsole": false,
+
+      // cppdbg talks MI protocol to a GDB-compatible debugger.
+      "MIMode": "gdb",
+
+      // Critical: use ROCm's GPU-aware GDB, not normal /usr/bin/gdb.
+      "miDebuggerPath": "/opt/rocm/bin/rocgdb",
+
+      // Build before debugging.
+      "preLaunchTask": "cmake build (debug)",
+
+      // Useful startup commands.
+      "setupCommands": [
+        {
+          "description": "Enable GDB pretty printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Do not ask interactive pagination questions",
+          "text": "set pagination off",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Print demangled C++ symbols",
+          "text": "set print demangle on",
+          "ignoreFailures": true
+        }
+      ],
+
+      // Logging can be enabled if the debug adapter acts weird.
+      "logging": {
+        "engineLogging": false,
+        "trace": false,
+        "traceResponse": false
+      }
+    },
+    {
+      "name": "rocgdb: views",
+      "type": "cppdbg",
+      "request": "launch",
+
+      "program": "${workspaceFolder}/build/debug/views",
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "environment": [],
+      "externalConsole": false,
+
+      "MIMode": "gdb",
+      "miDebuggerPath": "/opt/rocm/bin/rocgdb",
+
+      "preLaunchTask": "cmake build (debug)",
+
+      "setupCommands": [
+        {
+          "description": "Enable GDB pretty printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Do not ask interactive pagination questions",
+          "text": "set pagination off",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Print demangled C++ symbols",
+          "text": "set print demangle on",
+          "ignoreFailures": true
+        }
+      ],
+
+      "logging": {
+        "engineLogging": false,
+        "trace": true,
+        "traceResponse": false
+      }
+    }
+  ]
+}

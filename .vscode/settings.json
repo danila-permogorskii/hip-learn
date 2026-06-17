@@ -1,0 +1,37 @@
+{
+  // Use clangd for C++/HIP code intelligence.
+  // Keep the Microsoft C/C++ extension installed, but do not let it provide IntelliSense.
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  // Use ROCm's clangd from the droplet.
+  "clangd.path": "/opt/rocm/llvm/bin/clangd",
+
+  // Tell clangd where the real compile commands are and which compiler driver to trust.
+  "clangd.arguments": [
+    "--query-driver=/opt/rocm/llvm/bin/amdclang++",
+    "--compile-commands-dir=${workspaceFolder}/build/debug",
+    "--background-index",
+    "--header-insertion=never"
+  ],
+
+  // Tell VSCode CMake Tools to use CMakePresets.json.
+  "cmake.useCMakePresets": "always",
+
+  // Optional but useful: keep build output readable.
+  "cmake.configureOnOpen": false,
+
+  // Optional: show CMake status in the status bar.
+  "cmake.showOptionsMovedNotification": false,
+
+  // Optional: avoid accidentally using local-looking paths.
+  "terminal.integrated.cwd": "${workspaceFolder}",
+
+  // Optional: file associations for HIP.
+  "files.associations": {
+    "*.hip": "cpp",
+    "*.inc": "cpp",
+    "*.inl": "cpp",
+    "*.hpp": "cpp",
+    "*.h": "cpp"
+  }
+}

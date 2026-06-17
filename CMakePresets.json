@@ -4,6 +4,7 @@
     {
       "name": "debug",
       "displayName": "Debug (gfx942+gfx950, -O0 -g)",
+      "description": "Debug build for ROCgDB GPU debugging on MI300X gfx942 and MI350X gfx950.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
@@ -15,6 +16,7 @@
     {
       "name": "release",
       "displayName": "Release (gfx942+gfx950, -O3)",
+      "description": "Optimized build for profiling and performance measurements.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
@@ -22,6 +24,20 @@
         "CMAKE_HIP_ARCHITECTURES": "gfx942;gfx950",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "displayName": "Build Debug",
+      "configurePreset": "debug",
+      "jobs": 0
+    },
+    {
+      "name": "release",
+      "displayName": "Build Release",
+      "configurePreset": "release",
+      "jobs": 0
     }
   ]
 }
