@@ -1,0 +1,28 @@
+{
+    // ── C++/HIP language intelligence ──────────────────────────────────────────
+    // Zed's clangd is the SAME clangd as VSCode's. We point it at ROCm's build of
+    // clangd so it understands HIP, and feed it the compile DB the CMake preset made.
+    // Zeds clangd är SAMMA clangd som VSCode:s — vi pekar den mot ROCm-bygget.
+    "lsp": {
+        "clangd": {
+            "binary": {
+                "path": "/opt/rocm/llvm/bin/clangd", // ROCm's HIP-aware clangd
+                "arguments": [
+                    "--query-driver=/opt/rocm/llvm/bin/amdclang++", // trust the HIP driver
+                    "--compile-commands-dir=build/debug", // the preset's DB
+                    "--background-index", // index whole repo once
+                    "--header-insertion=never" // do not auto-add #includes
+                ]
+            }
+        }
+    },
+
+    // ── Let clangd own everything; do not run a second, conflicting analyser ─────
+    // Motsvarar VSCode-steget "disable C/C++ IntelliSense" — en analysmotor räcker.
+    "languages": {
+        "C++": {
+            "language_servers": ["clangd", "!..."], // clangd only; "!..." disables the rest
+            "format_on_save": "off" // never reformat kernel source silently
+        }
+    }
+}

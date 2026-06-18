@@ -1,0 +1,29 @@
+[
+    {
+        // The everyday debug build — the one rocgdb attaches to (-O0 -g).
+        // Vardagsbygget — det som rocgdb fäster vid.
+        "label": "cmake build (debug)",
+        "command": "cmake",
+        "args": ["--build", "build/debug", "-j"],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always" // show output in the terminal panel
+    },
+    {
+        // The profiling build — never profile the debug build, the numbers lie.
+        // Profileringsbygget — profilera ALDRIG en debug-build, siffrorna ljuger.
+        "label": "cmake build (release)",
+        "command": "cmake",
+        "args": ["--build", "build/release", "-j"],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always"
+    },
+    {
+        // One-time (re)configure if you blew away the build dir or edited the preset.
+        // Engångskonfiguration om du raderat build-katalogen eller ändrat preset:en.
+        "label": "cmake configure (debug)",
+        "command": "cmake",
+        "args": ["--preset", "debug"],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always"
+    }
+]

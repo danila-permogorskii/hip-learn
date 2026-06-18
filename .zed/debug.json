@@ -1,0 +1,38 @@
+[
+    {
+        // ── The label shown in the debug panel / new-process modal ────────────────
+        "label": "rocgdb (DAP): toolchain_smoke",
+
+        // ── The adapter. "GDB" makes Zed launch a GDB binary in DAP mode and speak
+        //    DAP to it. We then HIJACK which GDB binary that is, below.
+        //    Adaptern "GDB" startar en gdb i DAP-läge — vi byter ut själva binären.
+        "adapter": "GDB",
+
+        // ── THE crucial line: launch rocgdb instead of plain gdb. rocgdb (ROCm 7.2,
+        //    GDB-15/16-based) speaks DAP natively and knows AMD wavefronts.
+        //    DEN avgörande raden: kör rocgdb i stället för vanlig gdb.
+        "gdb_path": "/opt/rocm/bin/rocgdb",
+
+        // ── launch (vs attach). Zed starts the program under rocgdb. ───────────────
+        "request": "launch",
+
+        // ── The binary built by the debug task. Must be the -O0 -g build. ─────────
+        //    Binären från debug-uppgiften — måste vara -O0 -g-bygget.
+        "program": "$ZED_WORKTREE_ROOT/build/debug/toolchain_smoke",
+        "cwd": "$ZED_WORKTREE_ROOT",
+
+        // ── Build before debugging so you never step through stale machine code. ──
+        //    Bygg före felsökning så du aldrig stegar i gammal maskinkod.
+        "build": "cmake build (debug)"
+    },
+    {
+        // Duplicate for the Part-2 target. Duplicera för Del 2-målet.
+        "label": "rocgdb (DAP): views",
+        "adapter": "GDB",
+        "gdb_path": "/opt/rocm/bin/rocgdb",
+        "request": "launch",
+        "program": "$ZED_WORKTREE_ROOT/build/debug/views",
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "build": "cmake build (debug)"
+    }
+]
