@@ -6,7 +6,7 @@
     "lsp": {
         "clangd": {
             "binary": {
-                "path": "/opt/rocm/llvm/bin/clangd", // ROCm's HIP-aware clangd
+                "path": "/usr/bin/clangd", // ROCm's HIP-aware clangd
                 "arguments": [
                     "--query-driver=/opt/rocm/llvm/bin/amdclang++", // trust the HIP driver
                     "--compile-commands-dir=build/debug", // the preset's DB
