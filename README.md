@@ -107,37 +107,9 @@ rocprofv3 --hip-trace --hsa-trace -- ./build/release/<target>  # full trace
 - **Language server:** clangd (`.clangd` strips `--offload-arch` for the CPU frontend)
 - **Debugger:** rocgdb (DAP configs in `.zed/debug.json`)
 - **Profilers:** rocprofv3, rocprof-compute (Python deps in `droplet/venv/`)
-
----
-
-## Code Formatting — Kodformatering
-
-This repo follows the [ROCm rocm-libraries](https://github.com/ROCm/rocm-libraries)
-formatting standards: Google-style clang-format (100 col, indent 4), cmake-format,
-and black for Python. A pre-commit hook enforces it automatically.
-
-**One-time setup** (after running the bootstrap script):
-
-```bash
-# Install clang-format (system package)
-sudo apt-get install -y clang-format
-
-# Install pre-commit hooks
-source droplet/venv/bin/activate
-pre-commit install
-```
-
-After that, `git commit` will auto-format staged files. To format everything manually:
-
-```bash
-source droplet/venv/bin/activate
-pre-commit run --all-files
-```
-
-**In Zed:** use the command palette (`Ctrl+Shift+P` → Tasks) to run:
-- **pre-commit (staged)** — checks staged files
-- **pre-commit (all files)** — checks the entire repo
-- **pre-commit (install hooks)** — one-time git hook setup
+- **Formatting:** `.clang-format` and `.cmake-format.py` follow
+  [ROCm rocm-libraries](https://github.com/ROCm/rocm-libraries) standards
+  (Google style, 100 col, indent 4). clangd applies them on-save automatically.
 
 ---
 

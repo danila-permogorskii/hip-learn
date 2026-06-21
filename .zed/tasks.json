@@ -25,32 +25,5 @@
         "args": ["--preset", "debug"],
         "cwd": "$ZED_WORKTREE_ROOT",
         "reveal": "always"
-    },
-    {
-        // Run pre-commit checks on staged files (same as git commit).
-        // Kör formatering och lint på filer som är staged.
-        "label": "pre-commit (staged)",
-        "command": "bash",
-        "args": ["-c", "source droplet/venv/bin/activate && pre-commit run"],
-        "cwd": "$ZED_WORKTREE_ROOT",
-        "reveal": "always"
-    },
-    {
-        // Run pre-commit checks on all files — useful before pushing.
-        // Kör formatering och lint på ALLA filer — bra innan push.
-        "label": "pre-commit (all files)",
-        "command": "bash",
-        "args": ["-c", "source droplet/venv/bin/activate && pre-commit run --all-files"],
-        "cwd": "$ZED_WORKTREE_ROOT",
-        "reveal": "always"
-    },
-    {
-        // Install pre-commit git hooks (one-time setup).
-        // Installerar git-hooks för pre-commit (engångsinställning).
-        "label": "pre-commit (install hooks)",
-        "command": "bash",
-        "args": ["-c", "source droplet/venv/bin/activate && pre-commit install"],
-        "cwd": "$ZED_WORKTREE_ROOT",
-        "reveal": "always"
     }
 ]
