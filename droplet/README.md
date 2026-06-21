@@ -21,10 +21,11 @@ hip-learn/
 │   ├── tasks.json               # build / run / profile / isa / bootstrap tasks
 │   └── debug.json               # rocgdb (DAP) configs
 │
-├── droplet/                     # ← NEW: provisioning lives here
+├── droplet/                     # ← provisioning lives here
 │   ├── 1-install-rocm-7.2.4.sh  # your guide, steps 2–6 + reboot checkpoint
-│   ├── 2-bootstrap-droplet.sh   # dev env: ninja, clangd, pip deps, cmake config
-│   └── README.md                # this file
+│   ├── 2-bootstrap-droplet.sh   # dev env: ninja, clangd, venv + pip deps, cmake
+│   ├── README.md                # this file
+│   └── venv/                    # python venv (gitignored, created by bootstrap)
 │
 ├── 00-toolchain-smoke/
 │   └── toolchain_smoke.hip
@@ -83,8 +84,15 @@ driver did **not** bind; check `dmesg | grep -i amdgpu` for the TRN/PF errors fr
 ### Run C — dev environment + Zed
 
 ```bash
-./droplet/2-bootstrap-droplet.sh      # ninja, clangd, pip deps, cmake configure
+./droplet/2-bootstrap-droplet.sh      # ninja, clangd, python venv + pip deps, cmake configure
 # then connect Zed: Remote Projects → gpu-droplet → open /root/hip-learn
+```
+
+The bootstrap creates a Python venv at `droplet/venv/` (gitignored) and installs the
+rocprof-compute dependencies there. To use the venv manually later:
+
+```bash
+source droplet/venv/bin/activate
 ```
 
 ---
@@ -100,21 +108,17 @@ Two scripts, one reboot, one editor connection. *Två skript, en omstart, ett ve
 
 ---
 
-## 4. Two small edits when the bootstrap moves into `droplet/`
+## 4. Script internals — Hur skripten fungerar
 
-Your `2-bootstrap-droplet.sh` now lives one level down, so:
+**`2-bootstrap-droplet.sh`** resolves paths relative to its own location (`droplet/`), so
+it works regardless of where you invoke it from. CMake runs in a subshell that `cd`s to the
+repo root, keeping the parent shell's working directory unchanged.
 
-**(a)** Make it `cd` to the repo root regardless of where it's called from — add near the top:
+The Python venv lives at `droplet/venv/` and is excluded from git via `.gitignore`. The
+script installs `python3-venv` and `python3-dev` system packages if missing, creates the
+venv, activates it, and installs rocprof-compute dependencies.
 
-```bash
-# Resolve repo root from the script's own location (droplet/ is one level down)
-REPO_ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
-cd "${REPO_ROOT}"
-```
-
-so `cmake --preset debug` finds `CMakePresets.json` at the root. *Skriptet hittar alltid roten.*
-
-**(b)** Update the **"bootstrap droplet"** task in `.zed/tasks.json` to the new path:
+**(a)** Update the **"bootstrap droplet"** task in `.zed/tasks.json` to the new path:
 
 ```jsonc
 { "label": "bootstrap droplet",
