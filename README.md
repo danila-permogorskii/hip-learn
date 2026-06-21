@@ -101,7 +101,9 @@ rocprofv3 --hip-trace --hsa-trace -- ./build/release/<target>  # full trace
 
 ## Tooling — Verktyg
 
-- **Editor:** Zed (configs in `.zed/`)
+- **Editor:** Zed (configs in `.zed/`). I also kept `.vscode/` for compatibility, but Zed
+  is my daily driver — faster, lighter, and just feels right for GPU code.
+  *Zed känns bättre för mig än VS Code.*
 - **Language server:** clangd (`.clangd` strips `--offload-arch` for the CPU frontend)
 - **Debugger:** rocgdb (DAP configs in `.zed/debug.json`)
 - **Profilers:** rocprofv3, rocprof-compute (Python deps in `droplet/venv/`)
