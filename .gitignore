@@ -43,5 +43,6 @@ out/
 pftrace/
 
 # python venv
+__pycache__/
 venv/
 droplet/venv/
