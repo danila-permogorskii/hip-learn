@@ -32,18 +32,33 @@ apt-get install -y --no-install-recommends \
     clangd \
     rocprofiler-compute \
     rocprofiler-systems \
+    python3-venv \
+    python3-dev \
     || echo "!! some packages may already be present — continuing"
 
-# --- 2. Python deps for rocprof-compute — pip-beroenden --------------------
+# --- 2. Python venv + deps for rocprof-compute — virtuell miljö ------------
 # The .deb drops the BINARY; the analysis/roofline ENGINE (pandas, numpy,
 # dash, matplotlib…) is Python and must be pip-installed separately.
 # Paketet ger skalet, pip ger motorn.
-# --break-system-packages: Ubuntu 24.04 marks system Python "externally
-#   managed" (PEP 668) and pip refuses without it. Fine on a throwaway droplet.
+# We install into a venv under droplet/venv/ to keep system Python clean.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="${SCRIPT_DIR}/venv"
+
+if [[ ! -d "${VENV_DIR}" ]]; then
+    echo "==> Creating Python venv at ${VENV_DIR}…"
+    python3 -m venv "${VENV_DIR}"
+fi
+
+# Activate the venv for the remainder of this script
+# shellcheck disable=SC1091
+source "${VENV_DIR}/bin/activate"
+echo "==> venv activated: $(which python) $(python --version 2>&1)"
+
 REQ="${ROCM_PATH}/libexec/rocprofiler-compute/requirements.txt"
 if [[ -f "${REQ}" ]]; then
-    echo "==> Installing rocprof-compute Python deps…"
-    pip install --break-system-packages -r "${REQ}"
+    echo "==> Installing rocprof-compute Python deps into venv…"
+    pip install --upgrade pip
+    pip install -r "${REQ}"
 else
     echo "!! ${REQ} not found — skipping rocprof-compute deps"
 fi
@@ -66,9 +81,14 @@ fi
 # debug   : the build rocgdb attaches to (-O0 -g)
 # release : the build you PROFILE (-O3). Profilera aldrig en debug-build.
 # This also generates build/<type>/compile_commands.json for clangd.
-echo "==> Configuring CMake presets…"
-cmake --preset debug
-cmake --preset release
+# The script lives in droplet/ but CMakePresets.json is at repo root.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+echo "==> Configuring CMake presets (in ${REPO_ROOT})…"
+(
+    cd "${REPO_ROOT}"
+    cmake --preset debug
+    cmake --preset release
+)
 
 # --- 5. Report the live arch this session — rapportera arkitekturen --------
 # Droplets vary draw-to-draw: gfx942 (MI300X) vs gfx950 (MI350X). Always know

@@ -41,3 +41,7 @@ CMakeUserPresets.json
 results.json
 out/
 pftrace/
+
+# python venv
+venv/
+droplet/venv/
