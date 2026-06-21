@@ -20,14 +20,15 @@ ROCM_PATH="$(readlink -f /opt/rocm 2>/dev/null || echo /opt/rocm)"
 echo "==> ROCm at: ${ROCM_PATH}"
 
 # --- 1. System packages — systempaket (apt) --------------------------------
-# ninja-build : the generator CMakePresets.json asks for (annars: "unable to
-#               find Ninja").  clangd : the language server ROCm does NOT ship
-#               (Zed spawns it; without it, every .hip file is red squiggles).
-# The profiler binaries are usually already present on the DO image, but apt
-# is idempotent, so listing them costs nothing on a fresh-but-different image.
+# cmake : the build system driver (CMakePresets.json).  ninja-build : the
+#         generator CMakePresets.json asks for (annars: "unable to find Ninja").
+# clangd : the language server ROCm does NOT ship (Zed spawns it; without it,
+#          every .hip file is red squiggles).  The profiler binaries are usually
+#          already present on the DO image, but apt is idempotent.
 echo "==> Installing system packages…"
 apt-get update -qq
 apt-get install -y --no-install-recommends \
+    cmake \
     ninja-build \
     clangd \
     rocprofiler-compute \
