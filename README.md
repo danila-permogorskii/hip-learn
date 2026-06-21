@@ -111,6 +111,9 @@ rocprofv3 --hip-trace --hsa-trace -- ./build/release/<target>  # full trace
   [ROCm rocm-libraries](https://github.com/ROCm/rocm-libraries) standards
   (Google style, 100 col, indent 4). clangd applies them on-save automatically.
 
+A Zed cheat-sheet covering the full dev loop is in
+[`.zed/CHEATSHEET.md`](.zed/CHEATSHEET.md).
+
 ---
 
 ## Where This Is Going — Vart det går
