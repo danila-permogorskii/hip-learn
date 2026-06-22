@@ -34,5 +34,15 @@
         "program": "$ZED_WORKTREE_ROOT/build/debug/views",
         "cwd": "$ZED_WORKTREE_ROOT",
         "build": "cmake build (debug)"
+    },
+    {
+        // Duplicate for the Part-2 target. Duplicera för Del 2-målet.
+        "label": "rocgdb (DAP): descriptors_and_transforms",
+        "adapter": "GDB",
+        "gdb_path": "/opt/rocm/bin/rocgdb",
+        "request": "launch",
+        "program": "$ZED_WORKTREE_ROOT/build/debug/descriptors_and_transforms",
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "build": "cmake build (debug)"
     }
 ]

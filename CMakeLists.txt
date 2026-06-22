@@ -15,3 +15,8 @@ add_executable(views views/main.hip)
 set_source_files_properties(
         views/main.hip PROPERTIES LANGUAGE HIP
 )
+
+add_executable(descriptors_and_transforms descriptors_and_transforms/main.hip)
+set_source_files_properties(
+        descriptors_and_transforms/main.hip PROPERTIES LANGUAGE HIP
+)
