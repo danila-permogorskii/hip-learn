@@ -270,11 +270,11 @@ static double measure_gbs(Launch launch, size_t useful_bytes, int kIters) {
     hipEvent_t s, e;
     HIP_CHECK(hipEventCreate(&s)); HIP_CHECK(hipEventCreate(&e));
 
-    Launch(); HIP_CHECK(hipDeviceSynchronize()); // warmup
+    launch(); HIP_CHECK(hipDeviceSynchronize()); // warmup
     HIP_CHECK(hipEventRecord(s));
 
     for (int it = 0; it < kIters; it++) {
-        Launch();
+        launch();
     }
 
     HIP_CHECK(hipEventRecord(e)); HIP_CHECK(hipEventSynchronize(e));
@@ -360,6 +360,91 @@ int main() {
 
         std::printf("Embed transpose (swap strides): %s\n", ok ? "correct" : "wrong");
         HIP_CHECK(hipFree(din)); HIP_CHECK(hipFree(dout));
-
     }
+
+    // Merge then embed
+    {
+        constexpr uint32_t R = 1024, C = 1024, N = R * C;
+        const size_t bytes = size_t(N) * sizeof(float);
+        std::vector<float> h(N), out(N);
+
+        float *din, *dout;
+
+        HIP_CHECK(hipMalloc(&din, bytes)); HIP_CHECK(hipMalloc(&dout,bytes));
+        HIP_CHECK(hipMemcpy(din, h.data(), bytes, hipMemcpyHostToDevice));
+        uint32_t grid = uint32_t(4 * prop.multiProcessorCount);
+
+        copy_via_merge<<<grid, kBlock>>>(dout, din, Merge{ C }, Embed{ C, 1u}, N);
+        HIP_CHECK(hipGetLastError()); HIP_CHECK(hipDeviceSynchronize());
+        HIP_CHECK(hipMemcpy(out.data(), dout, bytes, hipMemcpyDeviceToHost));
+
+        bool ok = true;
+        for (uint32_t i = 0; i < N; i++) {
+            if (out[i] != h[i]) {
+                ok = false;
+                break;
+            }
+        }
+
+        std::printf("Merge -> Embed 1d over 2d: %s\n", ok ? "correct" : "wrong");
+        HIP_CHECK(hipFree(din)); HIP_CHECK(hipFree(dout));
+    }
+
+    // Pad + composition -> descriptor
+    {
+        constexpr uint32_t R = 4000, C = 4000, Nvis = R * C; // C isn't a multiple of 64
+        const uint32_t lda = ((C + 63) / 64) * 64; // pad row to 64
+        const size_t in_bytes = size_t(Nvis) * sizeof(float);
+        const size_t pad_bytes = size_t(R) * lda * sizeof(float);
+
+        std::vector<float> h(Nvis), outp(size_t(R) * lda);
+
+        for (uint32_t i = 0; i < Nvis; i++) {
+            h[i] = float(i % 100000);
+        }
+
+        float *din, *dpack, *dpad;
+        HIP_CHECK(hipMalloc(&din, in_bytes));
+        HIP_CHECK(hipMalloc(&dpack, in_bytes));
+        HIP_CHECK(hipMalloc(&dpad, pad_bytes));
+        HIP_CHECK(hipMemcpy(din, h.data(), in_bytes, hipMemcpyHostToDevice));
+        uint32_t grid = uint32_t(4 * prop.multiProcessorCount);
+
+        Descriptor2D packed{ Merge{ C }, Embed{ C, 1u}};
+        Descriptor2D padded{ Merge{C}, Embed{lda, 1u}};
+
+        // Correctness on teh padded layout
+        copy_through_desc<<<grid, kBlock>>>(dpad, din, padded, Nvis);
+        HIP_CHECK(hipGetLastError()); HIP_CHECK(hipDeviceSynchronize());
+        HIP_CHECK(hipMemcpy(outp.data(), dpad, pad_bytes, hipMemcpyDeviceToHost));
+
+        bool ok = true;
+        for (uint32_t r = 0; r < R && ok; r++) {
+           for (uint32_t c = 0; c < C; c++) {
+               if (outp[size_t(r) * lda + c] != h[size_t(r) * C + c]) {
+                   ok = false;
+                   break;
+               }
+           }
+        }
+
+        std::printf("Descriptor (Merge+Embed) into padded buffer: %s\n", ok ? "correct" : "wrong");
+
+        // Cost of padding
+        size_t useful = size_t(Nvis) * sizeof(float);
+        double gp = measure_gbs([&] -> void {copy_through_desc<<<grid, kBlock>>>(dpack, din, packed, Nvis);}, useful, 50);
+        double gd = measure_gbs([&] -> void {copy_through_desc<<<grid, kBlock>>>(dpad, din, packed, Nvis);}, useful, 50);
+
+        std::printf("         packed (lda=%u): %.1f GB/s | padded (lda=%u): %.1f GB/s\n",
+                    C, gp, lda, gd);
+        std::printf("         minnesoverhead (memory overhead) av padding: %.1f%%\n",
+                    100.0 * (double(lda) / double(C) - 1.0));
+        std::printf("         -> padding kostar lite bandbredd/minne, ger justerade rader.\n");
+        std::printf("            (padding costs a little bandwidth/memory, buys aligned rows.)\n");
+
+        HIP_CHECK(hipFree(din)); HIP_CHECK(hipFree(dpack)); HIP_CHECK(hipFree(dpad));
+    }
+
+    std::printf("Read trasforms.html and descriptors.html in cktile documentation");
+    return 0;
 }
