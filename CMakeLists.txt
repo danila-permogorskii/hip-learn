@@ -20,3 +20,8 @@ add_executable(descriptors_and_transforms descriptors_and_transforms/main.hip)
 set_source_files_properties(
         descriptors_and_transforms/main.hip PROPERTIES LANGUAGE HIP
 )
+
+add_executable(TileDistribution TileDistribution/another.hip)
+set_source_files_properties(
+        TileDistribution/another.hip PROPERTIES LANGUAGE HIP
+)
